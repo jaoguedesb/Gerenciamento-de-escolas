@@ -1,0 +1,324 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Main {
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new EscolaGUI().setVisible(true));
+    }
+}
+
+class EscolaGUI extends JFrame {
+    private Escola escola;
+    private JTextArea infoArea;
+    private JTextField nomeEscolaField, nomeDiretorField, nomeAlunoField, nomeCursoField, nomeProfessorField;
+    private JTextField notaField;
+    private JComboBox<String> alunoNotaComboBox;
+    
+    
+    public EscolaGUI() {
+        setTitle("Sistema de Gerenciamento Escolar");
+        setSize(600, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        // Campos de entrada e botões
+        JPanel inputPanel = new JPanel(new GridLayout(0, 1));
+        
+        notaField = addInputField(inputPanel, "Nota do Aluno:");
+        alunoNotaComboBox = new JComboBox<>();
+        inputPanel.add(alunoNotaComboBox);
+        JButton addNotaBtn = new JButton("Adicionar Nota");
+        inputPanel.add(addNotaBtn);
+        
+        nomeEscolaField = addInputField(inputPanel, "Nome da Escola:");
+        JButton definirEscolaBtn = new JButton("Definir Escola");
+        inputPanel.add(definirEscolaBtn);
+
+        nomeDiretorField = addInputField(inputPanel, "Nome do Diretor:");
+        JButton addDiretorBtn = new JButton("Adicionar Diretor");
+        inputPanel.add(addDiretorBtn);
+
+        nomeProfessorField = addInputField(inputPanel, "Nome do Professor:");
+        JButton addProfessorBtn = new JButton("Adicionar Professor");
+        inputPanel.add(addProfessorBtn);
+
+        nomeAlunoField = addInputField(inputPanel, "Nome do Aluno:");
+        JButton addAlunoBtn = new JButton("Adicionar Aluno");
+        inputPanel.add(addAlunoBtn);
+
+        nomeCursoField = addInputField(inputPanel, "Nome do Curso:");
+        JButton addCursoBtn = new JButton("Adicionar Curso");
+        inputPanel.add(addCursoBtn);
+
+        JButton concluirBtn = new JButton("Concluir");
+        inputPanel.add(concluirBtn);
+
+        add(inputPanel, BorderLayout.NORTH);
+
+        infoArea = new JTextArea();
+        add(new JScrollPane(infoArea), BorderLayout.CENTER);
+
+      
+        definirEscolaBtn.addActionListener(e -> definirEscola());
+        addDiretorBtn.addActionListener(e -> adicionarDiretor());
+        addProfessorBtn.addActionListener(e -> adicionarProfessor());
+        addAlunoBtn.addActionListener(e -> adicionarAluno());
+        addCursoBtn.addActionListener(e -> adicionarCurso());
+        concluirBtn.addActionListener(e -> resetarInterface());
+        addNotaBtn.addActionListener(e -> adicionarNota());
+        
+
+        
+    }
+
+    private JTextField addInputField(JPanel panel, String label) {
+        JLabel lbl = new JLabel(label);
+        JTextField textField = new JTextField(20);
+        panel.add(lbl);
+        panel.add(textField);
+        return textField;
+    }
+    
+    private void adicionarNota() {
+        String nomeAluno = (String) alunoNotaComboBox.getSelectedItem();
+        if (nomeAluno == null || nomeAluno.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Selecione um aluno primeiro.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        try {
+            double nota = Double.parseDouble(notaField.getText());
+            escola.addNota(nomeAluno, nota);
+            mostrarDados();
+            System.out.println("Nota adicionada para o aluno: " + nomeAluno);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Por favor, insira um valor numérico para a nota.", "Erro de Formato de Número", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+    private void definirEscola() {
+        String nomeEscola = nomeEscolaField.getText();
+        escola = new Escola(nomeEscola);
+        mostrarDados();
+        System.out.println("Escola definida: " + nomeEscola);
+    }
+
+    private void adicionarDiretor() {
+        String nome = nomeDiretorField.getText();
+        Diretor diretor = new Diretor(nome);
+        escola.addDiretor(diretor);
+        mostrarDados();
+        System.out.println("Adicionado Diretor: " + diretor);
+    }
+
+    private void adicionarProfessor() {
+        String nome = nomeProfessorField.getText();
+        Professor professor = new Professor(nome);
+        escola.addProfessor(professor);
+        mostrarDados();
+        System.out.println("Adicionado Professor: " + professor);
+    }
+
+    private void adicionarAluno() {
+        String nome = nomeAlunoField.getText();
+        Aluno aluno = new Aluno(nome);
+        escola.addAluno(aluno);
+        mostrarDados();
+        System.out.println("Adicionado Aluno: " + aluno);
+        atualizarAlunoNotaComboBox();
+    }
+
+    private void adicionarCurso() {
+        String nomeCurso = nomeCursoField.getText();
+        String nomeProf = nomeProfessorField.getText();
+        Professor professor = new Professor(nomeProf);
+        Curso curso = new Curso(nomeCurso, professor);
+        escola.addCurso(curso);
+        mostrarDados();
+        System.out.println("Adicionado Curso: " + curso);
+    }
+
+    private void mostrarDados() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Escola: ").append(escola.getNome()).append("\n\n");
+        sb.append("Diretores:\n");
+        for (Diretor d : escola.getDiretores()) {
+            sb.append(d).append("\n");
+        }
+        sb.append("\nProfessores:\n");
+        for (Professor p : escola.getProfessores()) {
+            sb.append(p).append("\n");
+        }
+         sb.append("\nAlunos:\n");
+        for (Aluno a : escola.getAlunos()) {
+            sb.append(a).append(", Média das Notas: ").append(a.calcularMedia()).append("\n");
+       }
+        sb.append("\nCursos:\n");
+        for (Curso c : escola.getCursos()) {
+            sb.append(c).append("\n");
+        }
+        infoArea.setText(sb.toString());
+    }
+    
+   private void atualizarAlunoNotaComboBox() {
+        alunoNotaComboBox.removeAllItems();
+        for (Aluno aluno : escola.getAlunos()) {
+            alunoNotaComboBox.addItem((String) aluno.getNome());
+        }
+    }
+
+
+  private void resetarInterface() {
+        // Notificação de conclusão
+        if (escola != null) {
+            JOptionPane.showMessageDialog(this, 
+                "Escola '" + escola.getNome() + "' criada com sucesso!",
+                "Conclusão", JOptionPane.INFORMATION_MESSAGE);
+        }
+
+        nomeEscolaField.setText("");
+        nomeDiretorField.setText("");
+        nomeProfessorField.setText("");
+        nomeAlunoField.setText("");
+        nomeCursoField.setText("");
+        infoArea.setText("");
+        escola = null;
+        System.out.println("Interface resetada para criação de nova escola.");
+    }
+}
+
+// CLASSES
+
+class Escola {
+    private String nome;
+    private List<Diretor> diretores;
+    private List<Professor> professores;
+    private List<Aluno> alunos;
+    private List<Curso> cursos;
+    
+    public void addNota(String nomeAluno, double nota) {
+        Aluno aluno = alunos.stream().filter(a -> a.getNome().equals(nomeAluno)).findFirst().orElse(null);
+        if (aluno != null) {
+            aluno.addNota(nota);
+        }
+    }
+
+    public Escola(String nome) {
+        this.nome = nome;
+        this.diretores = new ArrayList<>();
+        this.professores = new ArrayList<>();
+        this.alunos = new ArrayList<>();
+        this.cursos = new ArrayList<>();
+    }
+
+    public void addDiretor(Diretor diretor) {
+        diretores.add(diretor);
+    }
+
+    public void addProfessor(Professor professor) {
+        professores.add(professor);
+    }
+
+    public void addAluno(Aluno aluno) {
+        alunos.add(aluno);
+    }
+
+    public void addCurso(Curso curso) {
+        cursos.add(curso);
+    }
+
+    public List<Diretor> getDiretores() {
+        return diretores;
+    }
+
+    public List<Professor> getProfessores() {
+        return professores;
+    }
+
+    public List<Aluno> getAlunos() {
+        return alunos;
+    }
+
+    public List<Curso> getCursos() {
+        return cursos;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+}
+
+
+abstract class Pessoa {
+    protected String nome;
+
+    public Pessoa(String nome) {
+        this.nome = nome;
+    }
+
+    @Override
+    public String toString() {
+        return "Nome: " + nome;
+    }
+}
+
+class Diretor extends Pessoa {
+    public Diretor(String nome) {
+        super(nome);
+    }
+}
+
+// Classe Professor
+class Professor extends Pessoa {
+    public Professor(String nome) {
+        super(nome);
+    }
+}
+
+class Aluno extends Pessoa {
+    private List<Double> notas;
+
+    public Aluno(String nome) {
+        super(nome);
+        this.notas = new ArrayList<>();
+    }
+
+    public void addNota(double nota) {
+        notas.add(nota);
+    }
+
+    public double calcularMedia() {
+        return notas.stream()
+            .mapToDouble(Double::doubleValue)
+            .average()
+            .orElse(0.0);
+    }
+
+    @Override
+    public String toString() {
+        return "Aluno: " + nome;
+    }
+
+ 
+    public String getNome() {
+        return nome;
+    }
+}
+
+class Curso {
+    private String nome;
+    private Professor professor;
+
+    public Curso(String nome, Professor professor) {
+        this.nome = nome;
+        this.professor = professor;
+    }
+
+    @Override
+    public String toString() {
+        return "Curso: " + nome + ", Professor: " + professor.nome;
+    }
+}
