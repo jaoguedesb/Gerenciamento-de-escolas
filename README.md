@@ -1,6 +1,6 @@
 Sistema de Gerenciamento Escolar
 
-Descrição
+Descrição:
 Este projeto consiste em um sistema de gerenciamento escolar desenvolvido em Java, utilizando a biblioteca Swing para a interface gráfica. O sistema permite o gerenciamento eficiente de informações relacionadas a alunos, professores, turmas e horários escolares.
 
 Desenvolvedores:
