@@ -1,3 +1,5 @@
+package com.mycompany.main;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -16,6 +18,8 @@ class EscolaGUI extends JFrame {
     private JTextField nomeEscolaField, nomeDiretorField, nomeAlunoField, nomeCursoField, nomeProfessorField;
     private JTextField notaField;
     private JComboBox<String> alunoNotaComboBox;
+    private JTextField matriculaField, serieField;
+    
     
     
     public EscolaGUI() {
@@ -23,15 +27,28 @@ class EscolaGUI extends JFrame {
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
+        
 
         // Campos de entrada e botões
         JPanel inputPanel = new JPanel(new GridLayout(0, 1));
+        
+        JButton calcularMediaBtn = new JButton("Calcular Média do Aluno");
+        inputPanel.add(calcularMediaBtn);
+        calcularMediaBtn.addActionListener(e -> calcularMediaAluno());
+        
+        JButton calcularDesvioPadraoBtn = new JButton("Calcular Desvio Padrão da Turma");
+        inputPanel.add(calcularDesvioPadraoBtn);
+        calcularDesvioPadraoBtn.addActionListener(e -> calcularDesvioPadraoTurma());
+        
         
         notaField = addInputField(inputPanel, "Nota do Aluno:");
         alunoNotaComboBox = new JComboBox<>();
         inputPanel.add(alunoNotaComboBox);
         JButton addNotaBtn = new JButton("Adicionar Nota");
         inputPanel.add(addNotaBtn);
+        
+        matriculaField = addInputField(inputPanel, "Matrícula do Aluno:");
+        serieField = addInputField(inputPanel, "Série do Aluno:");
         
         nomeEscolaField = addInputField(inputPanel, "Nome da Escola:");
         JButton definirEscolaBtn = new JButton("Definir Escola");
@@ -82,6 +99,53 @@ class EscolaGUI extends JFrame {
         return textField;
     }
     
+    private void calcularDesvioPadraoTurma() {
+    if (escola == null || escola.getAlunos().isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Não há alunos cadastrados.", "Erro", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+
+    double soma = 0;
+    int contagemNotas = 0;
+    for (Aluno aluno : escola.getAlunos()) {
+        for (double nota : aluno.getNotas()) {
+            soma += nota;
+            contagemNotas++;
+        }
+    }
+
+    double media = soma / contagemNotas;
+
+    double somaDiferencasQuadrado = 0;
+    for (Aluno aluno : escola.getAlunos()) {
+        for (double nota : aluno.getNotas()) {
+            somaDiferencasQuadrado += Math.pow(nota - media, 2);
+        }
+    }
+
+    double desvioPadrao = Math.sqrt(somaDiferencasQuadrado / contagemNotas);
+    JOptionPane.showMessageDialog(this, "O desvio padrão da turma é: " + desvioPadrao, "Desvio Padrão da Turma", JOptionPane.INFORMATION_MESSAGE);
+}
+    
+    private void calcularMediaAluno() {
+    String nomeAluno = (String) alunoNotaComboBox.getSelectedItem();
+    if (nomeAluno == null || nomeAluno.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Selecione um aluno primeiro.", "Erro", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+    Aluno aluno = escola.getAlunos().stream()
+                        .filter(a -> a.getNome().equals(nomeAluno))
+                        .findFirst()
+                        .orElse(null);
+
+    if (aluno != null) {
+        double media = aluno.calcularMedia();
+        JOptionPane.showMessageDialog(this, "A média do aluno " + nomeAluno + " é: " + media, "Média do Aluno", JOptionPane.INFORMATION_MESSAGE);
+    } else {
+        JOptionPane.showMessageDialog(this, "Aluno não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
+    }
+}
+    
     private void adicionarNota() {
         String nomeAluno = (String) alunoNotaComboBox.getSelectedItem();
         if (nomeAluno == null || nomeAluno.isEmpty()) {
@@ -122,9 +186,11 @@ class EscolaGUI extends JFrame {
         System.out.println("Adicionado Professor: " + professor);
     }
 
-    private void adicionarAluno() {
+     private void adicionarAluno() {
         String nome = nomeAlunoField.getText();
-        Aluno aluno = new Aluno(nome);
+        String matricula = matriculaField.getText();
+        String serie = serieField.getText();
+        Aluno aluno = new Aluno(nome, matricula, serie);
         escola.addAluno(aluno);
         mostrarDados();
         System.out.println("Adicionado Aluno: " + aluno);
@@ -165,11 +231,12 @@ class EscolaGUI extends JFrame {
     
    private void atualizarAlunoNotaComboBox() {
         alunoNotaComboBox.removeAllItems();
-        for (Aluno aluno : escola.getAlunos()) {
-            alunoNotaComboBox.addItem((String) aluno.getNome());
+        if (escola != null && escola.getAlunos() != null) {
+            for (Aluno aluno : escola.getAlunos()) {
+                alunoNotaComboBox.addItem(aluno.getNome());
+            }
         }
     }
-
 
   private void resetarInterface() {
         // Notificação de conclusão
@@ -185,6 +252,8 @@ class EscolaGUI extends JFrame {
         nomeAlunoField.setText("");
         nomeCursoField.setText("");
         infoArea.setText("");
+        matriculaField.setText("");
+        serieField.setText("");
         escola = null;
         System.out.println("Interface resetada para criação de nova escola.");
     }
@@ -200,11 +269,14 @@ class Escola {
     private List<Curso> cursos;
     
     public void addNota(String nomeAluno, double nota) {
-        Aluno aluno = alunos.stream().filter(a -> a.getNome().equals(nomeAluno)).findFirst().orElse(null);
-        if (aluno != null) {
+    for (Aluno aluno : alunos) {
+        if (aluno.getNome().equals(nomeAluno)) {
             aluno.addNota(nota);
+            return;
         }
     }
+    // Opcional: Adicionar uma mensagem ou tratamento se o aluno não for encontrado
+}
 
     public Escola(String nome) {
         this.nome = nome;
@@ -280,16 +352,20 @@ class Professor extends Pessoa {
 
 class Aluno extends Pessoa {
     private List<Double> notas;
+    private String matricula;
+    private String serie;
 
-    public Aluno(String nome) {
+    public Aluno(String nome, String matricula, String serie) {
         super(nome);
+        this.matricula = matricula;
+        this.serie = serie;
         this.notas = new ArrayList<>();
     }
 
-    public void addNota(double nota) {
-        notas.add(nota);
+    public List<Double> getNotas() {
+        return notas;
     }
-
+     
     public double calcularMedia() {
         return notas.stream()
             .mapToDouble(Double::doubleValue)
@@ -297,14 +373,25 @@ class Aluno extends Pessoa {
             .orElse(0.0);
     }
 
-    @Override
-    public String toString() {
-        return "Aluno: " + nome;
+   public String getMatricula() {
+        return matricula;
     }
 
- 
+    public String getSerie() {
+        return serie;
+    }
+
+    @Override
+    public String toString() {
+        return "Aluno: " + nome + ", Matrícula: " + matricula + ", Série: " + serie;
+    }
+
     public String getNome() {
         return nome;
+    }
+
+    public void addNota(double nota) {
+        notas.add(nota);
     }
 }
 
