@@ -2,7 +2,6 @@ package com.mycompany.main;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +28,6 @@ class EscolaGUI extends JFrame {
         setLayout(new BorderLayout());
         
 
-        // Campos de entrada e botões
         JPanel inputPanel = new JPanel(new GridLayout(0, 1));
         
         JButton calcularMediaBtn = new JButton("Calcular Média do Aluno");
@@ -275,7 +273,7 @@ class Escola {
             return;
         }
     }
-    // Opcional: Adicionar uma mensagem ou tratamento se o aluno não for encontrado
+ 
 }
 
     public Escola(String nome) {
@@ -343,7 +341,6 @@ class Diretor extends Pessoa {
     }
 }
 
-// Classe Professor
 class Professor extends Pessoa {
     public Professor(String nome) {
         super(nome);
