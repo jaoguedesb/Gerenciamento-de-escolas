@@ -19,7 +19,7 @@ Cadastro e gerenciamento de alunos
 Cadastro e gerenciamento de professores
 Criação e gerenciamento de turmas
 Gerenciamento de Cursos
-Média de cada Aluno para tal desciplina
+Média de cada Aluno para tal desciplina e o desvio padrão da turma
 
 Como Executar:
 Para executar o sistema, siga os passos abaixo:
